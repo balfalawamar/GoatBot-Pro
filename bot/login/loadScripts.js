@@ -78,6 +78,9 @@ module.exports = async function (api, threadModel, userModel, dashBoardModel, gl
 							packageName = packageName.split('/').slice(0, 2).join('/');
 						else packageName = packageName.split('/')[0];
 
+						if (packageName.startsWith('node:') || require('module').builtinModules.includes(packageName))
+							continue;
+
 						if (!packageAlready.includes(packageName)) {
 							packageAlready.push(packageName);
 
