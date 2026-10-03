@@ -213,9 +213,9 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
 		// Same idea as markAsRead above, but for the "delivered" receipt —
 		// a real client sends both automatically. Also fire-and-forget,
 		// also invisible/instant, no user-facing delay either way.
-		if (!event.isE2EE && event.type !== "typ" && event.type !== "presence" && typeof api.markAsDelivered === "function") {
+		if (!event.isE2EE && event.type !== "typ" && event.type !== "presence" && threadID && event.messageID && typeof api.markAsDelivered === "function") {
 			try {
-				api.markAsDelivered(threadID, event.messageID).catch(() => {});
+				Promise.resolve(api.markAsDelivered(threadID, event.messageID)).catch(() => {});
 			} catch { }
 		}
 
