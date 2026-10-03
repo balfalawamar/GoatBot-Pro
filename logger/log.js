@@ -1,53 +1,62 @@
-const { colors } = require('../func/colors.js');
 const moment = require("moment-timezone");
-const characters = '';
-const getCurrentTime = () => colors.gray(moment().tz("Asia/Ho_Chi_Minh").format("HH:mm:ss DD/MM/YYYY"));
 
-function logError(prefix, message) {
-	if (message === undefined) {
-		message = prefix;
-		prefix = "ERROR";
-	}
-	console.log(`${getCurrentTime()} ${colors.redBright(`${characters} ${prefix}:`)}`, message);
-	const error = Object.values(arguments).slice(2);
-	for (let err of error) {
-		if (typeof err == "object" && !err.stack)
-			err = JSON.stringify(err, null, 2);
-		console.log(`${getCurrentTime()} ${colors.redBright(`${characters} ${prefix}:`)}`, err);
+const TZ = (() => {
+	try { return require("../config.json").timeZone || "Asia/Dhaka"; }
+	catch { return "Asia/Dhaka"; }
+})();
+
+const esc = (code, s) => `\x1b[${code}m${s}\x1b[0m`;
+const dim = s => esc("90", s);
+const bold = s => esc("1", s);
+const TAG_WIDTH = 16;
+
+// white text on a colored background, fixed width so every line lines up
+const badge = (label, bg) => `\x1b[1;97;${bg}m ${label.padEnd(5)} \x1b[0m`;
+const BADGES = {
+	info: badge("INFO", 44),
+	success: badge("OK", 42),
+	warn: badge("WARN", 43),
+	error: badge("ERROR", 41),
+	master: badge("BOT", 45)
+};
+
+const time = () => dim(moment().tz(TZ).format("HH:mm:ss"));
+
+function print(kind, tagColor, prefix, message, extra = []) {
+	const tag = esc(tagColor, bold(String(prefix).padEnd(TAG_WIDTH)));
+	const head = `${time()} ${BADGES[kind]} ${tag}${dim("│")}`;
+	console.log(head, message);
+	for (let item of extra) {
+		if (typeof item == "object" && item && !item.stack)
+			item = JSON.stringify(item, null, 2);
+		console.log(head, item);
 	}
 }
 
+function make(kind, color, defaultPrefix) {
+	return function (prefix, message, ...extra) {
+		if (message === undefined) {
+			message = prefix;
+			prefix = defaultPrefix;
+		}
+		print(kind, color, prefix, message, extra);
+	};
+}
+
+const info = make("info", "96", "INFO");
+const warn = make("warn", "93", "WARN");
+const error = make("error", "91", "ERROR");
+const success = make("success", "92", "SUCCESS");
+const master = make("master", "95", "MASTER");
+
 module.exports = {
-	err: logError,
-	error: logError,
-	warn: function (prefix, message) {
-		if (message === undefined) {
-			message = prefix;
-			prefix = "WARN";
-		}
-		console.log(`${getCurrentTime()} ${colors.yellowBright(`${characters} ${prefix}:`)}`, message);
-	},
-	info: function (prefix, message) {
-		if (message === undefined) {
-			message = prefix;
-			prefix = "INFO";
-		}
-		console.log(`${getCurrentTime()} ${colors.greenBright(`${characters} ${prefix}:`)}`, message);
-	},
-	success: function (prefix, message) {
-		if (message === undefined) {
-			message = prefix;
-			prefix = "SUCCES";
-		}
-		console.log(`${getCurrentTime()} ${colors.cyanBright(`${characters} ${prefix}:`)}`, message);
-	},
-	master: function (prefix, message) {
-		if (message === undefined) {
-			message = prefix;
-			prefix = "MASTER";
-		}
-		console.log(`${getCurrentTime()} ${colors.hex("#eb6734", `${characters} ${prefix}:`)}`, message);
-	},
+	err: error,
+	error,
+	warn,
+	info,
+	success,
+	succes: success,
+	master,
 	dev: (...args) => {
 		if (["development", "production"].includes(process.env.NODE_ENV) == false)
 			return;

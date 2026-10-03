@@ -614,13 +614,18 @@ async function startBot(_0x3cad9e) {
 
       let _0x70f374 = false;
       global.botID = _0x4d5048.getCurrentUserID();
-      logColor("#f5ab00", createLine("BOT INFO"));
-      log.info("NODE VERSION", process.version);
-      log.info("PROJECT VERSION", _0x3b1314);
-      log.info("BOT ID", global.botID + " - " + (await getName(global.botID)));
-      log.info("PREFIX", global.GoatBot.config.prefix);
-      log.info("LANGUAGE", global.GoatBot.config.language);
-      log.info("BOT NICK NAME", global.GoatBot.config.nickNameBot || "GOAT BOT");
+      {
+        const botName = await getName(global.botID);
+        const row = (k, v) => console.log("  \x1b[90m│\x1b[0m \x1b[1;36m" + k.padEnd(9) + "\x1b[0m " + v);
+        console.log("\n  \x1b[90m┌─\x1b[0m \x1b[1;33mBOT INFO\x1b[0m \x1b[90m" + "─".repeat(30) + "\x1b[0m");
+        row("Node", process.version);
+        row("Version", _0x3b1314);
+        row("Bot ID", global.botID + (botName ? "  (" + botName + ")" : ""));
+        row("Prefix", global.GoatBot.config.prefix);
+        row("Language", global.GoatBot.config.language);
+        row("Nickname", global.GoatBot.config.nickNameBot || "GOAT BOT");
+        console.log("  \x1b[90m└" + "─".repeat(42) + "\x1b[0m\n");
+      }
       let _0xe3d6c8 = {};
       try {
         const _0x22b9f2 = await axios.get('https://raw.githubusercontent.com/ntkhang03/Goat-Bot-V2-Gban/master/gban.json');
